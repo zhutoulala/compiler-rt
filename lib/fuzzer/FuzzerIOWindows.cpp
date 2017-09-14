@@ -318,6 +318,25 @@ void RawPrint(const char *Str) {
   Printf("%s", Str);
 }
 
+size_t FileSize(const std::string &Path)
+{
+    HANDLE hFile = CreateFile(Path.c_str(), GENERIC_READ, 
+        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 
+        FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile==INVALID_HANDLE_VALUE)
+        return -1; // error condition, could call GetLastError to find out more
+
+    LARGE_INTEGER size;
+    if (!GetFileSizeEx(hFile, &size))
+    {
+        CloseHandle(hFile);
+        return -1; // error condition, could call GetLastError to find out more
+    }
+
+    CloseHandle(hFile);
+    return size.QuadPart;
+}
+
 }  // namespace fuzzer
 
 #endif // LIBFUZZER_WINDOWS

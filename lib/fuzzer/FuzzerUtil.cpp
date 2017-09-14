@@ -124,7 +124,7 @@ bool ParseOneDictionaryEntry(const std::string &Str, Unit *U) {
   return true;
 }
 
-bool ParseDictionaryFile(const std::string &Text, Vector<Unit> *Units) {
+/*bool ParseDictionaryFile(const std::string &Text, Vector<Unit> *Units) {
   if (Text.empty()) {
     Printf("ParseDictionaryFile: file does not exist or is empty\n");
     return false;
@@ -148,6 +148,54 @@ bool ParseDictionaryFile(const std::string &Text, Vector<Unit> *Units) {
       return false;
     }
   }
+  return true;
+}*/
+
+std::string StripLine(const std::string &Str) {
+	size_t Pos = 0;
+	while (Pos < Str.size() && isspace(Str[Pos])) Pos++;  // Skip spaces.
+	if (Pos == Str.size()) return std::string(); // Empty line.
+	if (Str[Pos] == '#') return std::string();  // Comment line.
+	return Str.substr(Pos);
+}
+
+bool ParseDictionaryFile(const std::string &Text, Vector<Unit> *Units) {
+  if (Text.empty()) {
+    Printf("ParseDictionaryFile: file does not exist or is empty\n");
+    return false;
+  }
+
+  Units->clear();
+  Unit U;
+  int LineNo = 0;
+  int i = 0;
+  std::string S;
+  auto Pos = Text.find('\n');
+  while(Pos != std::string::npos) {
+    LineNo++;
+    //size_t Pos = 0;
+	S = Text.substr(i, Pos-i);
+
+    if (ParseOneDictionaryEntry(StripLine(S), &U)) {
+      Units->push_back(U);
+    } else {
+      Printf("ParseDictionaryFile: error in line %d\n\t\t%s\n", LineNo,
+             S.c_str());
+      return false;
+    }
+	i = ++Pos;
+    Pos = Text.find('\n', Pos);
+  }
+  
+  //for last line
+  S = Text.substr(Pos);
+  if (ParseOneDictionaryEntry(StripLine(S), &U)) {
+      Units->push_back(U);
+    } else {
+      Printf("ParseDictionaryFile: error in line %d\n\t\t%s\n", LineNo+1,
+             S.c_str());
+      return false;
+    }
   return true;
 }
 

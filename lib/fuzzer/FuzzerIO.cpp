@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstdarg>
 #include <fstream>
+#include <stdio.h>
 #include <iterator>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -30,7 +31,7 @@ long GetEpoch(const std::string &Path) {
   return St.st_mtime;
 }
 
-Unit FileToVector(const std::string &Path, size_t MaxSize, bool ExitOnError) {
+/*Unit FileToVector(const std::string &Path, size_t MaxSize, bool ExitOnError) {
   std::ifstream T(Path);
   if (ExitOnError && !T) {
     Printf("No such directory: %s; exiting\n", Path.c_str());
@@ -47,6 +48,29 @@ Unit FileToVector(const std::string &Path, size_t MaxSize, bool ExitOnError) {
   T.seekg(0, T.beg);
   Unit Res(FileLen);
   T.read(reinterpret_cast<char *>(Res.data()), FileLen);
+  return Res;
+}*/
+
+Unit FileToVector(const std::string &Path, size_t MaxSize, bool ExitOnError) {
+  FILE *In = fopen(Path.c_str(), "r");
+  if (!In) {
+    Printf("No such directory: %s; exiting\n", Path.c_str());
+    exit(1);
+  }
+
+  fseek(In, 0L, SEEK_END);
+  size_t FileLen = ftell(In);
+
+  fseek(In, 0L, SEEK_SET);	
+
+  if (MaxSize)
+    FileLen = std::min(FileLen, MaxSize);
+
+  Unit Res(FileLen);
+  
+  fread(reinterpret_cast<char *>(Res.data()), sizeof(char), FileLen, In);
+  fclose(In);
+  
   return Res;
 }
 
