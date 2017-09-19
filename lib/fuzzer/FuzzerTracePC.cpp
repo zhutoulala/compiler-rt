@@ -32,7 +32,12 @@ ATTRIBUTE_INTERFACE
 uintptr_t __sancov_trace_pc_pcs[fuzzer::TracePC::kNumPCs];
 
 // Used by -fsanitize-coverage=stack-depth to track stack depth
+#if LIBFUZZER_WINDOWS
 ATTRIBUTE_INTERFACE uintptr_t __sancov_lowest_stack;
+#else 
+ATTRIBUTE_INTERFACE __attribute__((tls_model("initial-exec")))
+thread_local uintptr_t __sancov_lowest_stack;
+#endif // LIBFUZZER_WINDOWS
 
 namespace fuzzer {
 
